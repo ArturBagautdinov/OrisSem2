@@ -1,35 +1,34 @@
 package com.bagautdinov.repository;
 
+
 import com.bagautdinov.model.User;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Optional;
+
 @Repository
-public class UserRepository {
+public interface UserRepository extends JpaRepository<User, Long> {
 
-    private final SessionFactory sessionFactory;
+    Optional<User> findByUsername(String username);
 
-    public UserRepository(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-    }
+    boolean existsByUsername(String username);
 
-    private Session currentSession() {
-        return sessionFactory.getCurrentSession();
-    }
+    void deleteByUsername(String username);
 
-    public List<User> findAll() {
-        return currentSession()
-                .createQuery("from User", User.class)
-                .getResultList();
-    }
+    List<User> findAllByOrderByIdAsc();
 
-    public User findById(long id) {
-        return currentSession().get(User.class, id);
-    }
+    @Query("select u from User u where u.username = :username")
+    Optional<User> getByUsername(@Param("username") String username);
 
-    public void save(User user) {
-        currentSession().persist(user);
-    }
+    @Query(value = "select * from users u where u.username = ?1", nativeQuery = true)
+    Optional<User> getByUsernameNative(String username);
+
+    @Modifying
+    @Query("update User u set u.username = :username where u.id = :id")
+    int updateUsernameById(@Param("id") Long id, @Param("username") String username);
 }
