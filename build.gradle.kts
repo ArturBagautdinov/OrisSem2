@@ -14,6 +14,7 @@ val postgresVersion: String by project
 val freemarkerVersion: String by project
 val hikariVersion: String by project
 val springDataVersion: String by project
+val springSecurityVersion: String by project
 
 repositories {
     mavenCentral()
@@ -32,7 +33,10 @@ dependencies {
     implementation("org.freemarker:freemarker:$freemarkerVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
-
+    implementation("org.springframework.security:spring-security-core:$springSecurityVersion")
+    implementation("org.springframework.security:spring-security-config:${springSecurityVersion}")
+    implementation("org.springframework.security:spring-security-web:${springSecurityVersion}")
+    implementation("org.springframework.security:spring-security-taglibs:${springSecurityVersion}")
 //    testImplementation(platform("org.junit:junit-bom:5.10.0"))
 //    testImplementation("org.junit.jupiter:junit-jupiter")
 }

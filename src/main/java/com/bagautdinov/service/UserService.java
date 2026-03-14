@@ -1,8 +1,11 @@
 package com.bagautdinov.service;
 
 import com.bagautdinov.dto.UserDto;
+import com.bagautdinov.model.Role;
 import com.bagautdinov.model.User;
+import com.bagautdinov.repository.RoleRepository;
 import com.bagautdinov.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,9 +16,15 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository,
+                       RoleRepository roleRepository,
+                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional(readOnly = true)
@@ -46,7 +55,32 @@ public class UserService {
             throw new RuntimeException("User already exists with username: " + username);
         }
 
-        User savedUser = userRepository.save(new User(username));
+        Role userRole = roleRepository.findByName("ROLE_USER")
+                .orElseThrow(() -> new RuntimeException("Role ROLE_USER not found"));
+
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode("defaultPassword"));
+        user.setRoles(List.of(userRole));
+
+        User savedUser = userRepository.save(user);
+        return new UserDto(savedUser.getId(), savedUser.getUsername());
+    }
+
+    public UserDto register(String username, String rawPassword) {
+        if (userRepository.existsByUsername(username)) {
+            throw new RuntimeException("User already exists with username: " + username);
+        }
+
+        Role userRole = roleRepository.findByName("ROLE_USER")
+                .orElseThrow(() -> new RuntimeException("Role ROLE_USER not found"));
+
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(rawPassword));
+        user.setRoles(List.of(userRole));
+
+        User savedUser = userRepository.save(user);
         return new UserDto(savedUser.getId(), savedUser.getUsername());
     }
 
