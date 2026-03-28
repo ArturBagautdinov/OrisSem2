@@ -1,4 +1,4 @@
-//package com.bagautdinov.repository;
+package com.bagautdinov.repository;//package com.bagautdinov.repository;
 //
 //import com.bagautdinov.model.User;
 //import org.hibernate.Session;

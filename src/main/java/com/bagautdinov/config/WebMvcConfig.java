@@ -1,4 +1,4 @@
-//package com.bagautdinov.config;
+package com.bagautdinov.config;//package com.bagautdinov.config;
 //
 //import jakarta.servlet.ServletContext;
 //import jakarta.servlet.ServletException;

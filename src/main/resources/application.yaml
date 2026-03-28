@@ -1,0 +1,43 @@
+server:
+  port: 8200
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: Fhnehbr2021
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  liquibase:
+    enabled: false
+  freemarker:
+    enabled: true
+    template-loader-path: classpath:/templates
+    suffix: .ftl
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: test@gmail.com
+    password: abcd efgh wert weer
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+
+mail:
+  sender: Test Application
+  from: ${spring.mail.username}
+  subject: Please verify your account
+  content: "Dear $name, please follow the link to verify your account: <a href='$url'>Verify</a>"
+  base-url: http://localhost:8200

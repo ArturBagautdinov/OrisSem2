@@ -1,6 +1,5 @@
 package com.bagautdinov.repository;
 
-
 import com.bagautdinov.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -16,7 +15,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUsername(String username);
 
+    Optional<User> findByVerificationCode(String verificationCode);
+
     boolean existsByUsername(String username);
+
+    boolean existsByEmail(String email);
 
     void deleteByUsername(String username);
 

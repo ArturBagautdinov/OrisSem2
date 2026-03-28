@@ -1,9 +1,9 @@
 package com.bagautdinov.model;
 
 import jakarta.persistence.*;
-import java.util.HashSet;
+
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -18,6 +18,15 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column
+    private String verificationCode;
+
+    @Column(nullable = false)
+    private boolean verified = false;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_role",
@@ -27,11 +36,13 @@ public class User {
     private List<Role> roles;
 
     public User() {
+        this.roles = new ArrayList<>();
     }
 
     public User(String username, String password) {
         this.username = username;
         this.password = password;
+        this.roles = new ArrayList<>();
     }
 
     public Long getId() {
@@ -56,6 +67,30 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getVerificationCode() {
+        return verificationCode;
+    }
+
+    public void setVerificationCode(String verificationCode) {
+        this.verificationCode = verificationCode;
+    }
+
+    public boolean isVerified() {
+        return verified;
+    }
+
+    public void setVerified(boolean verified) {
+        this.verified = verified;
     }
 
     public List<Role> getRoles() {

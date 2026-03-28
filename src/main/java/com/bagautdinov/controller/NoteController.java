@@ -67,6 +67,7 @@ public class NoteController {
         User currentUser = getCurrentUser(principal);
         note.setId(null);
         note.setAuthor(currentUser);
+        note.setCreatedAt(java.time.LocalDateTime.now());
         noteRepository.save(note);
         redirectAttributes.addFlashAttribute("successMessage", "Заметка создана");
         return "redirect:/notes";
