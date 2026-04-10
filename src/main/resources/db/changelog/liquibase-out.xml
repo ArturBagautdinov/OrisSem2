@@ -1,0 +1,118 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="arturbagautdinov (generated)" id="1775828319917-1">
+        <createTable tableName="users">
+            <column autoIncrement="true" name="id" startWith="14" type="INTEGER">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="users_pkey"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password_hash" type="VARCHAR(60)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="full_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValue="USER" name="role" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="gender" type="CHAR(1)"/>
+            <column name="age" type="INTEGER"/>
+            <column name="height_cm" type="INTEGER"/>
+            <column name="weight_kg" type="numeric(5, 2)"/>
+            <column defaultValue="moderate" name="activity_level" type="VARCHAR(20)"/>
+            <column defaultValueComputed="now()" name="created_at" type="TIMESTAMP WITHOUT TIME ZONE"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="arturbagautdinov (generated)" id="1775828319917-2">
+        <createTable tableName="food_items">
+            <column autoIncrement="true" name="id" startWith="21" type="INTEGER">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="food_items_pkey"/>
+            </column>
+            <column name="owner_id" type="INTEGER"/>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="calories" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="protein_g" type="numeric(6, 2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fat_g" type="numeric(6, 2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="carbs_g" type="numeric(6, 2)">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValueBoolean="true" name="is_public" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="arturbagautdinov (generated)" id="1775828319917-3">
+        <createTable tableName="recipes">
+            <column autoIncrement="true" name="id" startWith="23" type="INTEGER">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="recipes_pkey"/>
+            </column>
+            <column name="owner_id" type="INTEGER"/>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column defaultValueBoolean="false" name="public" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="arturbagautdinov (generated)" id="1775828319917-4">
+        <createTable tableName="consumption_entries">
+            <column autoIncrement="true" name="id" startWith="17" type="INTEGER">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="consumption_entries_pkey"/>
+            </column>
+            <column name="user_id" type="INTEGER"/>
+            <column name="entry_date" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="item_type" type="VARCHAR(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="item_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount_g" type="numeric(8, 2)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="arturbagautdinov (generated)" id="1775828319917-5">
+        <addUniqueConstraint columnNames="email" constraintName="users_email_key" tableName="users"/>
+    </changeSet>
+    <changeSet author="arturbagautdinov (generated)" id="1775828319917-6">
+        <createTable tableName="recipe_ingredients">
+            <column name="recipe_id" type="INTEGER">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="recipe_ingredients_pkey"/>
+            </column>
+            <column name="food_id" type="INTEGER">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="recipe_ingredients_pkey"/>
+            </column>
+            <column name="amount_g" type="numeric(8, 2)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="arturbagautdinov (generated)" id="1775828319917-7">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="consumption_entries" constraintName="consumption_entries_user_id_fkey" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="users" validate="true"/>
+    </changeSet>
+    <changeSet author="arturbagautdinov (generated)" id="1775828319917-8">
+        <addForeignKeyConstraint baseColumnNames="owner_id" baseTableName="food_items" constraintName="food_items_owner_id_fkey" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="users" validate="true"/>
+    </changeSet>
+    <changeSet author="arturbagautdinov (generated)" id="1775828319917-9">
+        <addForeignKeyConstraint baseColumnNames="food_id" baseTableName="recipe_ingredients" constraintName="recipe_ingredients_food_id_fkey" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="food_items" validate="true"/>
+    </changeSet>
+    <changeSet author="arturbagautdinov (generated)" id="1775828319917-10">
+        <addForeignKeyConstraint baseColumnNames="recipe_id" baseTableName="recipe_ingredients" constraintName="recipe_ingredients_recipe_id_fkey" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="recipes" validate="true"/>
+    </changeSet>
+    <changeSet author="arturbagautdinov (generated)" id="1775828319917-11">
+        <addForeignKeyConstraint baseColumnNames="owner_id" baseTableName="recipes" constraintName="recipes_owner_id_fkey" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="users" validate="true"/>
+    </changeSet>
+</databaseChangeLog>

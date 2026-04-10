@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: jdbc:postgresql://localhost:5432/testLiquibase
     username: postgres
     password: Fhnehbr2021
     driver-class-name: org.postgresql.Driver
@@ -12,12 +12,11 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
   liquibase:
-    enabled: false
-  freemarker:
     enabled: true
-    template-loader-path: classpath:/templates
-    suffix: .ftl
+    change-log: classpath:/db/changelog/db-changelog.xml
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -41,3 +40,8 @@ mail:
   subject: Please verify your account
   content: "Dear $name, please follow the link to verify your account: <a href='$url'>Verify</a>"
   base-url: http://localhost:8200
+
+logging:
+  level:
+    org:
+      liquibase: DEBUG
