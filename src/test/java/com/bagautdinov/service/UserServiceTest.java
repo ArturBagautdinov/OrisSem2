@@ -23,6 +23,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -71,6 +72,44 @@ class UserServiceTest {
     }
 
     @Test
+    void findByIdReturnsDto() {
+        when(userRepository.findById(2L)).thenReturn(Optional.of(createUser(2L, "petr")));
+
+        UserDto result = userService.findById(2L);
+
+        assertEquals(2L, result.getId());
+        assertEquals("petr", result.getUsername());
+    }
+
+    @Test
+    void findByIdThrowsWhenUserIsMissing() {
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.findById(99L));
+
+        assertEquals("User not found with id: 99", exception.getMessage());
+    }
+
+    @Test
+    void findByUsernameReturnsDto() {
+        when(userRepository.findByUsername("mila")).thenReturn(Optional.of(createUser(3L, "mila")));
+
+        UserDto result = userService.findByUsername("mila");
+
+        assertEquals(3L, result.getId());
+        assertEquals("mila", result.getUsername());
+    }
+
+    @Test
+    void findByUsernameThrowsWhenUserIsMissing() {
+        when(userRepository.findByUsername("ghost")).thenReturn(Optional.empty());
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.findByUsername("ghost"));
+
+        assertEquals("User not found with username: ghost", exception.getMessage());
+    }
+
+    @Test
     void createSavesNewVerifiedUser() {
         when(userRepository.existsByUsername("ivan")).thenReturn(false);
         when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
@@ -101,6 +140,16 @@ class UserServiceTest {
         RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.create("ivan"));
 
         assertEquals("User already exists with username: ivan", exception.getMessage());
+    }
+
+    @Test
+    void createThrowsWhenRoleIsMissing() {
+        when(userRepository.existsByUsername("ivan")).thenReturn(false);
+        when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.empty());
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.create("ivan"));
+
+        assertEquals("Role ROLE_USER not found", exception.getMessage());
     }
 
     @Test
@@ -140,6 +189,27 @@ class UserServiceTest {
     }
 
     @Test
+    void registerThrowsWhenUsernameAlreadyExists() {
+        when(userRepository.existsByUsername("ivan")).thenReturn(true);
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> userService.register("ivan", "ivan@mail.com", "secret"));
+
+        assertEquals("Пользователь с таким логином уже существует", exception.getMessage());
+    }
+
+    @Test
+    void registerThrowsWhenEmailAlreadyExists() {
+        when(userRepository.existsByUsername("ivan")).thenReturn(false);
+        when(userRepository.existsByEmail("ivan@mail.com")).thenReturn(true);
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> userService.register("ivan", "ivan@mail.com", "secret"));
+
+        assertEquals("Пользователь с такой почтой уже существует", exception.getMessage());
+    }
+
+    @Test
     void verifyMarksUserAsVerified() {
         User user = createUser(30L, "vera");
         user.setVerified(false);
@@ -150,7 +220,7 @@ class UserServiceTest {
 
         assertTrue(result);
         assertTrue(user.isVerified());
-        assertEquals(null, user.getVerificationCode());
+        assertNull(user.getVerificationCode());
         verify(userRepository).save(user);
     }
 
@@ -164,6 +234,15 @@ class UserServiceTest {
         boolean result = userService.verify("code");
 
         assertFalse(result);
+    }
+
+    @Test
+    void verifyThrowsForUnknownCode() {
+        when(userRepository.findByVerificationCode("bad")).thenReturn(Optional.empty());
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.verify("bad"));
+
+        assertEquals("Некорректный код подтверждения", exception.getMessage());
     }
 
     @Test
@@ -181,6 +260,15 @@ class UserServiceTest {
     }
 
     @Test
+    void updateThrowsWhenUserDoesNotExist() {
+        when(userRepository.existsById(40L)).thenReturn(false);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.update(40L, "new"));
+
+        assertEquals("User not found with id: 40", exception.getMessage());
+    }
+
+    @Test
     void updateThrowsWhenUsernameBelongsToDifferentUser() {
         User otherUser = createUser(50L, "taken");
         when(userRepository.existsById(41L)).thenReturn(true);
@@ -193,6 +281,19 @@ class UserServiceTest {
     }
 
     @Test
+    void updateThrowsWhenRepositoryDoesNotUpdateRows() {
+        User sameUser = createUser(42L, "same");
+        when(userRepository.existsById(42L)).thenReturn(true);
+        when(userRepository.existsByUsername("same")).thenReturn(true);
+        when(userRepository.findByUsername("same")).thenReturn(Optional.of(sameUser));
+        when(userRepository.updateUsernameById(42L, "same")).thenReturn(0);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.update(42L, "same"));
+
+        assertEquals("Failed to update user with id: 42", exception.getMessage());
+    }
+
+    @Test
     void deleteByIdDeletesExistingUser() {
         when(userRepository.existsById(60L)).thenReturn(true);
 
@@ -202,12 +303,30 @@ class UserServiceTest {
     }
 
     @Test
+    void deleteByIdThrowsWhenUserIsMissing() {
+        when(userRepository.existsById(61L)).thenReturn(false);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.deleteById(61L));
+
+        assertEquals("User not found with id: 61", exception.getMessage());
+    }
+
+    @Test
     void deleteByUsernameDeletesExistingUser() {
         when(userRepository.existsByUsername("ivan")).thenReturn(true);
 
         userService.deleteByUsername("ivan");
 
         verify(userRepository).deleteByUsername("ivan");
+    }
+
+    @Test
+    void deleteByUsernameThrowsWhenUserIsMissing() {
+        when(userRepository.existsByUsername("ghost")).thenReturn(false);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.deleteByUsername("ghost"));
+
+        assertEquals("User not found with username: ghost", exception.getMessage());
     }
 
     private User createUser(Long id, String username) {

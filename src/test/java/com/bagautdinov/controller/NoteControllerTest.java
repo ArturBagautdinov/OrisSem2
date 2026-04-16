@@ -19,6 +19,9 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,11 +51,42 @@ class NoteControllerTest {
         assertEquals("notes", viewName);
         assertEquals(List.of(note), model.get("notes"));
         assertEquals("spr", model.get("query"));
+        assertEquals("Мои заметки", model.get("pageTitle"));
+        assertEquals(false, model.get("isPublicPage"));
+    }
+
+    @Test
+    void myNotesLoadsAllAuthorNotesWhenQueryIsBlank() {
+        User user = createUser("ivan");
+        Note note = createNote(2L, "JPA");
+        ExtendedModelMap model = new ExtendedModelMap();
+
+        when(userRepository.findByUsername("ivan")).thenReturn(Optional.of(user));
+        when(noteRepository.findByAuthor(user)).thenReturn(List.of(note));
+
+        String viewName = noteController.myNotes("   ", principal("ivan"), model);
+
+        assertEquals("notes", viewName);
+        assertEquals(List.of(note), model.get("notes"));
+        assertEquals("   ", model.get("query"));
+    }
+
+    @Test
+    void publicNotesUsesSearchWhenQueryIsPresent() {
+        Note note = createNote(3L, "Public");
+        ExtendedModelMap model = new ExtendedModelMap();
+        when(noteRepository.searchPublic("pub")).thenReturn(List.of(note));
+
+        String viewName = noteController.publicNotes("pub", model);
+
+        assertEquals("public_notes", viewName);
+        assertEquals(List.of(note), model.get("notes"));
+        assertEquals("pub", model.get("query"));
     }
 
     @Test
     void publicNotesLoadsPublicNotesWhenQueryIsAbsent() {
-        Note note = createNote(2L, "Shared");
+        Note note = createNote(4L, "Shared");
         ExtendedModelMap model = new ExtendedModelMap();
         when(noteRepository.findByIsPublicTrue()).thenReturn(List.of(note));
 
@@ -60,6 +94,19 @@ class NoteControllerTest {
 
         assertEquals("public_notes", viewName);
         assertEquals(List.of(note), model.get("notes"));
+        assertNull(model.get("query"));
+    }
+
+    @Test
+    void createFormPreparesModel() {
+        ExtendedModelMap model = new ExtendedModelMap();
+
+        String viewName = noteController.createForm(model);
+
+        assertEquals("note_form", viewName);
+        assertNotNull(model.get("note"));
+        assertEquals("/notes/create", model.get("formAction"));
+        assertEquals("Создание заметки", model.get("pageTitle"));
     }
 
     @Test
@@ -73,9 +120,40 @@ class NoteControllerTest {
         String viewName = noteController.create(note, principal("ivan"), redirectAttributes);
 
         assertEquals("redirect:/notes", viewName);
+        assertNull(note.getId());
         assertEquals(user, note.getAuthor());
         assertNotNull(note.getCreatedAt());
+        assertEquals("Заметка создана", redirectAttributes.getFlashAttributes().get("successMessage"));
         verify(noteRepository).save(note);
+    }
+
+    @Test
+    void editFormLoadsOwnedNote() {
+        User user = createUser("ivan");
+        Note note = createNote(7L, "Editable");
+        ExtendedModelMap model = new ExtendedModelMap();
+
+        when(userRepository.findByUsername("ivan")).thenReturn(Optional.of(user));
+        when(noteRepository.findByIdAndAuthor(7L, user)).thenReturn(Optional.of(note));
+
+        String viewName = noteController.editForm(7L, principal("ivan"), model);
+
+        assertEquals("note_form", viewName);
+        assertSame(note, model.get("note"));
+        assertEquals("/notes/7/edit", model.get("formAction"));
+        assertEquals("Редактирование заметки", model.get("pageTitle"));
+    }
+
+    @Test
+    void editFormThrowsWhenNoteBelongsToAnotherUser() {
+        User user = createUser("ivan");
+        when(userRepository.findByUsername("ivan")).thenReturn(Optional.of(user));
+        when(noteRepository.findByIdAndAuthor(8L, user)).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> noteController.editForm(8L, principal("ivan"), new ExtendedModelMap()));
+
+        assertEquals("Нельзя редактировать чужую заметку", exception.getMessage());
     }
 
     @Test
@@ -96,6 +174,7 @@ class NoteControllerTest {
         assertEquals("New", storedNote.getTitle());
         assertEquals("Updated content", storedNote.getContent());
         assertEquals(true, storedNote.isPublic());
+        assertEquals("Заметка обновлена", redirectAttributes.getFlashAttributes().get("successMessage"));
         verify(noteRepository).save(storedNote);
     }
 
@@ -111,7 +190,18 @@ class NoteControllerTest {
         String viewName = noteController.delete(10L, principal("ivan"), redirectAttributes);
 
         assertEquals("redirect:/notes", viewName);
+        assertEquals("Заметка удалена", redirectAttributes.getFlashAttributes().get("successMessage"));
         verify(noteRepository).delete(storedNote);
+    }
+
+    @Test
+    void deleteThrowsWhenUserIsMissing() {
+        when(userRepository.findByUsername("ghost")).thenReturn(Optional.empty());
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> noteController.delete(11L, principal("ghost"), new RedirectAttributesModelMap()));
+
+        assertEquals("Пользователь не найден", exception.getMessage());
     }
 
     private Principal principal(String username) {

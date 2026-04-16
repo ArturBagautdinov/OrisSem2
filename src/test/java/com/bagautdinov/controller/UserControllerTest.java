@@ -33,11 +33,27 @@ class UserControllerTest {
     }
 
     @Test
+    void findByIdReturnsUserFromService() {
+        UserDto user = new UserDto(2L, "Petr");
+        when(userService.findById(2L)).thenReturn(user);
+
+        assertEquals(user, userController.findById(2L));
+    }
+
+    @Test
     void createReturnsCreatedUser() {
         UserDto createdUser = new UserDto(3L, "Alex");
         when(userService.create("Alex")).thenReturn(createdUser);
 
         assertEquals(createdUser, userController.create("Alex"));
+    }
+
+    @Test
+    void updateReturnsUpdatedUser() {
+        UserDto updatedUser = new UserDto(4L, "Mila");
+        when(userService.update(4L, "Mila")).thenReturn(updatedUser);
+
+        assertEquals(updatedUser, userController.update(4L, "Mila"));
     }
 
     @Test
@@ -56,5 +72,23 @@ class UserControllerTest {
 
         assertEquals("users", viewName);
         assertEquals(users, model.get("users"));
+    }
+
+    @Test
+    void createUserRedirectsToUsersPage() {
+        assertEquals("redirect:/users/page", userController.createUser("Nina"));
+        verify(userService).create("Nina");
+    }
+
+    @Test
+    void updateUserRedirectsToUsersPage() {
+        assertEquals("redirect:/users/page", userController.updateUser(10L, "Dina"));
+        verify(userService).update(10L, "Dina");
+    }
+
+    @Test
+    void deleteUserRedirectsToUsersPage() {
+        assertEquals("redirect:/users/page", userController.deleteUser(11L));
+        verify(userService).deleteById(11L);
     }
 }

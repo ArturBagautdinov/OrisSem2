@@ -23,6 +23,21 @@ class AuthControllerTest {
     private AuthController authController;
 
     @Test
+    void testEndpointReturnsExpectedMessage() {
+        assertEquals("Test endpoint works!", authController.test());
+    }
+
+    @Test
+    void loginPageReturnsLoginView() {
+        assertEquals("login", authController.loginPage());
+    }
+
+    @Test
+    void registerPageReturnsRegisterView() {
+        assertEquals("register", authController.registerPage());
+    }
+
+    @Test
     void registerReturnsLoginOnSuccess() {
         ExtendedModelMap model = new ExtendedModelMap();
 
@@ -54,6 +69,17 @@ class AuthControllerTest {
 
         assertEquals("login", viewName);
         assertEquals("Почта успешно подтверждена. Теперь вы можете войти.", model.get("success"));
+    }
+
+    @Test
+    void verifyReturnsLoginWithSuccessMessageForRepeatedVerification() {
+        ExtendedModelMap model = new ExtendedModelMap();
+        when(userService.verify("code-2")).thenReturn(false);
+
+        String viewName = authController.verify("code-2", model);
+
+        assertEquals("login", viewName);
+        assertEquals("Почта уже была подтверждена ранее. Теперь вы можете войти.", model.get("success"));
     }
 
     @Test
