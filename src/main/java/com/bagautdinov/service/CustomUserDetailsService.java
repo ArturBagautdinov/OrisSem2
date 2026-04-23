@@ -1,5 +1,7 @@
 package com.bagautdinov.service;
 
+import com.bagautdinov.aop.Benchmark;
+import com.bagautdinov.aop.MethodMetric;
 import com.bagautdinov.model.User;
 import com.bagautdinov.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,6 +21,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
+    @MethodMetric
+    @Benchmark
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<User> user = userRepository.findByUsername(username);
         return user.map(CustomUserDetails::new)

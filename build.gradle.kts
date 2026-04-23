@@ -36,6 +36,7 @@ dependencies {
 
 //    implementation("org.springframework:spring-webmvc:$springVersion")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
 //    implementation("jakarta.servlet:jakarta.servlet-api:$jakartaVersion")
 //    implementation("org.springframework:spring-jdbc:$springVersion")
 //    implementation("org.springframework:spring-orm:$springVersion")

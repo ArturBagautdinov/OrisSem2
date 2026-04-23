@@ -1,5 +1,7 @@
 package com.bagautdinov.service;
 
+import com.bagautdinov.aop.Benchmark;
+import com.bagautdinov.aop.MethodMetric;
 import com.bagautdinov.config.properties.MailProperties;
 import com.bagautdinov.dto.UserDto;
 import com.bagautdinov.model.Role;
@@ -41,6 +43,8 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    @MethodMetric
+    @Benchmark
     public List<UserDto> findAll() {
         return userRepository.findAllByOrderByIdAsc().stream()
                 .map(user -> new UserDto(user.getId(), user.getUsername()))
@@ -48,6 +52,8 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    @MethodMetric
+    @Benchmark
     public UserDto findById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
@@ -56,6 +62,8 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    @MethodMetric
+    @Benchmark
     public UserDto findByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
@@ -63,6 +71,8 @@ public class UserService {
         return new UserDto(user.getId(), user.getUsername());
     }
 
+    @MethodMetric
+    @Benchmark
     public UserDto create(String username) {
         if (userRepository.existsByUsername(username)) {
             throw new RuntimeException("User already exists with username: " + username);
@@ -82,6 +92,8 @@ public class UserService {
         return new UserDto(savedUser.getId(), savedUser.getUsername());
     }
 
+    @MethodMetric
+    @Benchmark
     public UserDto register(String username, String email, String rawPassword) {
         if (userRepository.existsByUsername(username)) {
             throw new RuntimeException("Пользователь с таким логином уже существует");
@@ -106,6 +118,8 @@ public class UserService {
         return new UserDto(savedUser.getId(), savedUser.getUsername());
     }
 
+    @MethodMetric
+    @Benchmark
     public boolean verify(String code) {
         User user = userRepository.findByVerificationCode(code)
                 .orElseThrow(() -> new RuntimeException("Некорректный код подтверждения"));
@@ -120,6 +134,8 @@ public class UserService {
         return true;
     }
 
+    @MethodMetric
+    @Benchmark
     public UserDto update(Long id, String username) {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("User not found with id: " + id);
@@ -144,6 +160,8 @@ public class UserService {
         return new UserDto(updatedUser.getId(), updatedUser.getUsername());
     }
 
+    @MethodMetric
+    @Benchmark
     public void deleteById(Long id) {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("User not found with id: " + id);
@@ -152,6 +170,8 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
+    @MethodMetric
+    @Benchmark
     public void deleteByUsername(String username) {
         if (!userRepository.existsByUsername(username)) {
             throw new RuntimeException("User not found with username: " + username);
@@ -160,6 +180,8 @@ public class UserService {
         userRepository.deleteByUsername(username);
     }
 
+    @MethodMetric
+    @Benchmark
     private void sendVerificationMail(User user) {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         try {

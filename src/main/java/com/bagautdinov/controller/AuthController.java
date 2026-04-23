@@ -1,5 +1,6 @@
 package com.bagautdinov.controller;
 
+import com.bagautdinov.aop.Loggable;
 import com.bagautdinov.service.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,11 +24,13 @@ public class AuthController {
         return "Test endpoint works!";
     }
 
+    @Loggable
     @GetMapping("/login")
     public String loginPage() {
         return "login";
     }
 
+    @Loggable
     @GetMapping("/register")
     public String registerPage() {
         return "register";
